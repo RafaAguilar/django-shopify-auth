@@ -36,7 +36,7 @@ def authenticate(request, *args, **kwargs):
         return finalize(request, token='00000000000000000000000000000000', *args, **kwargs)
 
     if shop:
-        redirect_uri = request.build_absolute_uri(reverse('shopify_auth.views.finalize'))
+        redirect_uri = settings.SHOPIFY_APP_REDIRECT_URI
         scope = settings.SHOPIFY_APP_API_SCOPE
         permission_url = shopify.Session(shop.strip()).create_permission_url(scope, redirect_uri)
 
