@@ -41,6 +41,7 @@ def authenticate(request, *args, **kwargs):
         permission_url = shopify.Session(shop.strip()).create_permission_url(scope, redirect_uri)
 
         if settings.SHOPIFY_APP_IS_EMBEDDED:
+        if settings.SHOPIFY_APP_IS_EMBEDDED and request.method == 'GET':
             # Embedded Apps should use a Javascript redirect.
             return render(request, "shopify_auth/iframe_redirect.html", {
                 'redirect_uri': permission_url
