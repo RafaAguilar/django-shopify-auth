@@ -32,7 +32,6 @@ def login(request, *args, **kwargs):
 @anonymous_required
 def authenticate(request, *args, **kwargs):
     shop = request.POST.get('shop', request.GET.get('shop'))
-
     if settings.SHOPIFY_APP_DEV_MODE:
         return finalize(request, token='00000000000000000000000000000000', *args, **kwargs)
 
@@ -40,10 +39,13 @@ def authenticate(request, *args, **kwargs):
         redirect_uri = request.build_absolute_uri(
             reverse('shopify_auth.views.finalize'))
         scope = settings.SHOPIFY_APP_API_SCOPE
-
         permission_url = shopify.Session(
             shop.strip()).create_permission_url(scope, redirect_uri)
+
         if settings.SHOPIFY_APP_IS_EMBEDDED and request.method == 'GET':
+            redirect_uri = settings.SHOPIFY_APP_REDIRECT_URI
+            permission_url = shopify.Session(
+                shop.strip()).create_permission_url(scope, redirect_uri)
             # Embedded Apps should use a Javascript redirect.
             return render(request, "shopify_auth/iframe_redirect.html", {
                 'redirect_uri': permission_url,
@@ -52,7 +54,6 @@ def authenticate(request, *args, **kwargs):
         else:
             # Non-Embedded Apps should use a standard redirect.
             return HttpResponseRedirect(permission_url)
-
     return_address = get_return_address(request)
     return HttpResponseRedirect(return_address)
 
@@ -60,7 +61,6 @@ def authenticate(request, *args, **kwargs):
 @anonymous_required
 def finalize(request, *args, **kwargs):
     shop = request.POST.get('shop', request.GET.get('shop'))
-
     try:
         shopify_session = shopify.Session(shop, token=kwargs.get('token'))
         shopify_session.request_token(request.GET)
